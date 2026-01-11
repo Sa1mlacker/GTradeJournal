@@ -5,7 +5,7 @@
     'use strict';
 
     // Version for cache busting
-    const APP_VERSION = '2.0.0';
+    const APP_VERSION = '2.0.1';
     console.log('G Trade Journal v' + APP_VERSION + ' (Pure Fetch API)');
 
     // Supabase Configuration
@@ -21,15 +21,12 @@
     let viewUserId = null;
     let authToken = null;
 
-    // DOM Elements
-    const loadingScreen = document.getElementById('loadingScreen');
+    // DOM Elements - we'll get them when needed
     const authOverlay = document.getElementById('authOverlay');
     const authEmail = document.getElementById('authEmail');
     const authPassword = document.getElementById('authPassword');
     const authMsg = document.getElementById('authMsg');
     const authTitle = document.getElementById('authTitle');
-    const authPrimaryBtn = document.getElementById('authPrimaryBtn');
-    const authSecondaryBtn = document.getElementById('authSecondaryBtn');
     const app = document.getElementById('app');
     const viewOnlyBanner = document.getElementById('viewOnlyBanner');
 
@@ -202,13 +199,23 @@
     // ==================== Event Listeners ====================
 
     function setupEventListeners() {
-        authPrimaryBtn.addEventListener('click', handleAuth);
-        authSecondaryBtn.addEventListener('click', toggleAuthForm);
-        document.getElementById('logoutBtn').addEventListener('click', logout);
-        document.getElementById('newTradeBtn').addEventListener('click', showForm);
-        document.getElementById('equityBtn').addEventListener('click', showEquityChart);
-        document.getElementById('shareBtn').addEventListener('click', showShareModal);
-        document.getElementById('shareToggle').addEventListener('click', toggleShare);
+        const authPrimaryBtn = document.getElementById('authPrimaryBtn');
+        const authSecondaryBtn = document.getElementById('authSecondaryBtn');
+        
+        if (authPrimaryBtn) authPrimaryBtn.addEventListener('click', handleAuth);
+        if (authSecondaryBtn) authSecondaryBtn.addEventListener('click', toggleAuthForm);
+        
+        const logoutBtn = document.getElementById('logoutBtn');
+        const newTradeBtn = document.getElementById('newTradeBtn');
+        const equityBtn = document.getElementById('equityBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const shareToggle = document.getElementById('shareToggle');
+
+        if (logoutBtn) logoutBtn.addEventListener('click', logout);
+        if (newTradeBtn) newTradeBtn.addEventListener('click', window.showForm);
+        if (equityBtn) equityBtn.addEventListener('click', window.showEquityChart);
+        if (shareBtn) shareBtn.addEventListener('click', window.showShareModal);
+        if (shareToggle) shareToggle.addEventListener('click', toggleShare);
 
         ['newRisk', 'newRR', 'newResult'].forEach(id => {
             const el = document.getElementById(id);
@@ -238,21 +245,25 @@
     function toggleAuthForm() {
         isLoginMode = !isLoginMode;
         authMsg.textContent = "";
+        
+        const authPrimaryBtn = document.getElementById('authPrimaryBtn');
+        const authSecondaryBtn = document.getElementById('authSecondaryBtn');
 
         if (isLoginMode) {
             authTitle.textContent = "Sign In to G Trade Journal";
-            authPrimaryBtn.textContent = "Sign In";
-            authSecondaryBtn.textContent = "Sign Up";
+            if (authPrimaryBtn) authPrimaryBtn.textContent = "Sign In";
+            if (authSecondaryBtn) authSecondaryBtn.textContent = "Sign Up";
         } else {
             authTitle.textContent = "Sign Up";
-            authPrimaryBtn.textContent = "Create Account";
-            authSecondaryBtn.textContent = "Already have an account? Sign In";
+            if (authPrimaryBtn) authPrimaryBtn.textContent = "Create Account";
+            if (authSecondaryBtn) authSecondaryBtn.textContent = "Already have an account? Sign In";
         }
     }
 
     async function handleAuth() {
         const email = authEmail.value.trim();
         const password = authPassword.value;
+        const authPrimaryBtn = document.getElementById('authPrimaryBtn');
 
         if (!email) {
             showAuthError("Enter email");
@@ -267,7 +278,7 @@
             return;
         }
 
-        authPrimaryBtn.disabled = true;
+        if (authPrimaryBtn) authPrimaryBtn.disabled = true;
         showAuthInfo(isLoginMode ? "Signing in..." : "Creating account...");
 
         try {
@@ -301,7 +312,7 @@
             console.error("Auth error:", error);
             showAuthError(translateError(error.message));
         } finally {
-            authPrimaryBtn.disabled = false;
+            if (authPrimaryBtn) authPrimaryBtn.disabled = false;
         }
     }
 
