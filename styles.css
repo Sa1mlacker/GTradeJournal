@@ -21,8 +21,8 @@ header {
     background: #000000;
     padding: 30px 40px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: center;
+    align-items: flex-start;
     border-bottom: 1px solid #222;
     position: relative;
 }
@@ -31,7 +31,7 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 1;
+    flex: 0;
 }
 
 .logo {
@@ -53,6 +53,9 @@ h1 {
     display: flex;
     gap: 16px;
     white-space: nowrap;
+    position: absolute;
+    right: 40px;
+    top: 30px;
 }
 
 /* Buttons */
@@ -556,12 +559,13 @@ tr:hover {
 @media (max-width: 768px) {
     header {
         flex-direction: column;
-        gap: 16px;
+        align-items: center;
         padding: 20px;
     }
 
     .header-center {
         width: 100%;
+        margin-bottom: 20px;
     }
 
     .logo {
@@ -573,6 +577,7 @@ tr:hover {
     }
 
     .header-buttons {
+        position: static;
         justify-content: center;
         flex-wrap: wrap;
     }
