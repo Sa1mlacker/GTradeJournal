@@ -171,6 +171,18 @@
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmOverlay" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>Видалити трейд?</h3>
+            <p>Ця дія не може бути скасована.</p>
+            <div class="modal-actions">
+                <button class="btn secondary" onclick="window.cancelDelete()">Скасувати</button>
+                <button class="btn" style="background: #ff4444;" onclick="window.confirmDelete()">Видалити</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Configuration (must load before app.js) -->
     <script src="config.js"></script>
 

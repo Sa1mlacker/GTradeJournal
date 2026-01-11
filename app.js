@@ -533,7 +533,15 @@
 
     window.deleteTrade = async function(id) {
         if (isViewOnly || !currentUser) return;
-        if (!confirm('Видалити трейд?')) return;
+        window.pendingDeleteId = id;
+        document.getElementById('deleteConfirmOverlay').classList.remove('hidden');
+    }
+
+    window.confirmDelete = async function() {
+        const id = window.pendingDeleteId;
+        if (!id) return;
+
+        document.getElementById('deleteConfirmOverlay').classList.add('hidden');
 
         try {
             const { error } = await db.from('trades').delete().eq('id', id);
@@ -543,6 +551,11 @@
             console.error('Delete error:', err);
             alert('Помилка при видаленні трейду');
         }
+    }
+
+    window.cancelDelete = function() {
+        document.getElementById('deleteConfirmOverlay').classList.add('hidden');
+        window.pendingDeleteId = null;
     }
 
     // ==================== Equity Chart ====================

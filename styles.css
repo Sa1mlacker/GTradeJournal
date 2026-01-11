@@ -326,6 +326,75 @@ tr:hover {
     color: #aaa;
 }
 
+/* Delete Confirmation Modal */
+#deleteConfirmOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2001;
+}
+
+#deleteConfirmOverlay.hidden {
+    display: none;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2001;
+}
+
+.modal-overlay.hidden {
+    display: none !important;
+}
+
+.modal-box {
+    background: #111;
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 0 40px rgba(0,102,255,0.2);
+    border: 1px solid #333;
+    text-align: center;
+}
+
+.modal-box h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 20px;
+    color: #fff;
+}
+
+.modal-box p {
+    margin: 0 0 24px 0;
+    color: #aaa;
+    font-size: 14px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.modal-actions button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    min-width: 100px;
+}
+
 /* Add Form Modal */
 #addFormOverlay {
     position: fixed;
