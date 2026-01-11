@@ -3,6 +3,10 @@
 (function() {
     'use strict';
 
+    // Version for cache busting - UPDATE THIS when making changes
+    const APP_VERSION = '1.0.5';
+    console.log('G Trade Journal v' + APP_VERSION);
+
     // Supabase Configuration (з config.js)
     if (!window.CONFIG) {
         console.error('CONFIG не завантажено! Перевірте config.js');
@@ -46,6 +50,26 @@
     // ==================== Initialization ====================
 
     function init() {
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js?v=1.0.5')
+                .then((registration) => {
+                    console.log('ServiceWorker registered:', registration.scope);
+                })
+                .catch((error) => {
+                    console.log('ServiceWorker registration failed:', error);
+                });
+        }
+
+        // Prevent back navigation cache issues
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                // Page was loaded from back/forward cache
+                console.log('Page loaded from back/forward cache, refreshing...');
+                window.location.reload();
+            }
+        });
+
         if (!checkSharedView()) {
             setupEventListeners();
             checkSession();
@@ -126,8 +150,10 @@
         // Auto-calculate P/L
         ['newRisk', 'newRR', 'newResult'].forEach(id => {
             const el = document.getElementById(id);
-            el.addEventListener('input', updateAutoPL);
-            el.addEventListener('change', updateAutoPL);
+            if (el) {
+                el.addEventListener('input', updateAutoPL);
+                el.addEventListener('change', updateAutoPL);
+            }
         });
 
         // Keyboard shortcuts
@@ -232,6 +258,8 @@
 
     async function logout() {
         await db.auth.signOut();
+        // Clear any cached session data
+        sessionStorage.clear();
         window.location.reload();
     }
 
@@ -295,15 +323,34 @@
 
     // ==================== Trades Management ====================
 
+    // Retry helper function
+    async function withRetry(fn, maxRetries = 3, delay = 1000) {
+        let lastError;
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                return await fn();
+            } catch (err) {
+                lastError = err;
+                console.warn(`Attempt ${i + 1} failed:`, err.message);
+                if (i < maxRetries - 1) {
+                    await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+                }
+            }
+        }
+        throw lastError;
+    }
+
     async function loadTrades() {
         if (!currentUser) return;
 
         try {
-            const { data, error } = await db
-                .from('trades')
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .order('date', { ascending: false });
+            const { data, error } = await withRetry(() => 
+                db
+                    .from('trades')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('date', { ascending: false })
+            );
 
             if (error) throw error;
 
@@ -311,29 +358,33 @@
             renderTrades();
         } catch (err) {
             console.error('Load trades error:', err);
-            showTradesError('Помилка завантаження даних');
+            showTradesError('Помилка завантаження даних. Спробуйте оновити сторінку.');
         }
     }
 
     async function loadSharedTrades(userId) {
         try {
             // Check if user has public sharing enabled
-            const { data: profileData, error: profileError } = await db
-                .from('user_profiles')
-                .select('is_public')
-                .eq('user_id', userId)
-                .single();
+            const { data: profileData, error: profileError } = await withRetry(() =>
+                db
+                    .from('user_profiles')
+                    .select('is_public')
+                    .eq('user_id', userId)
+                    .single()
+            );
 
             if (profileError || !profileData || !profileData.is_public) {
                 showTradesError('Цей журнал не є публічним');
                 return;
             }
 
-            const { data, error } = await db
-                .from('trades')
-                .select('*')
-                .eq('user_id', userId)
-                .order('date', { ascending: false });
+            const { data, error } = await withRetry(() =>
+                db
+                    .from('trades')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('date', { ascending: false })
+            );
 
             if (error) throw error;
 
@@ -347,6 +398,8 @@
 
     function renderTrades() {
         const tbody = document.getElementById('tradesBody');
+        if (!tbody) return;
+        
         tbody.innerHTML = '';
 
         if (trades.length === 0) {
@@ -394,11 +447,24 @@
                 <td class="actions-cell">${isViewOnly ? '' : `<button class="edit-btn" data-id="${trade.id}">✎</button><button class="delete-btn" data-id="${trade.id}">✕</button>`}</td>
             `;
 
+            // Attach event listeners immediately after creating the element
             if (!isViewOnly) {
                 const editBtn = tr.querySelector('.edit-btn');
-                editBtn.addEventListener('click', () => window.openEditForm(trade));
                 const deleteBtn = tr.querySelector('.delete-btn');
-                deleteBtn.addEventListener('click', () => window.deleteTrade(trade.id));
+                
+                if (editBtn) {
+                    editBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        window.openEditForm(trade);
+                    });
+                }
+                
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        window.deleteTrade(trade.id);
+                    });
+                }
             }
 
             tbody.appendChild(tr);
@@ -410,6 +476,7 @@
 
     function showTradesError(message) {
         const tbody = document.getElementById('tradesBody');
+        if (!tbody) return;
         tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: #666;">${escapeHtml(message)}</td></tr>`;
     }
 
@@ -424,11 +491,17 @@
         const rrs = trades.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
         const avgRR = rrs.length > 0 ? (rrs.reduce((a,b) => a+b, 0) / rrs.length).toFixed(2) : '—';
 
-        document.getElementById('totalTrades').textContent = total;
-        document.getElementById('winrate').textContent = winrate;
-        document.getElementById('avgRisk').textContent = avgRisk;
-        document.getElementById('avgRR').textContent = avgRR;
-        document.getElementById('totalReturn').textContent = equity.toFixed(2) + '%';
+        const totalTradesEl = document.getElementById('totalTrades');
+        const winrateEl = document.getElementById('winrate');
+        const avgRiskEl = document.getElementById('avgRisk');
+        const avgRREl = document.getElementById('avgRR');
+        const totalReturnEl = document.getElementById('totalReturn');
+
+        if (totalTradesEl) totalTradesEl.textContent = total;
+        if (winrateEl) winrateEl.textContent = winrate;
+        if (avgRiskEl) avgRiskEl.textContent = avgRisk;
+        if (avgRREl) avgRREl.textContent = avgRR;
+        if (totalReturnEl) totalReturnEl.textContent = equity.toFixed(2) + '%';
     }
 
     // ==================== Trade Form ====================
@@ -515,7 +588,7 @@
         console.log('Додаємо трейд:', trade);
 
         try {
-            const { data, error } = await db.from('trades').insert(trade);
+            const { data, error } = await withRetry(() => db.from('trades').insert(trade));
             if (error) {
                 console.error('Supabase error details:', error);
                 throw error;
@@ -571,6 +644,8 @@
         const rrInput = document.getElementById('editRR');
         const resultInput = document.getElementById('editResult');
         const plInput = document.getElementById('editPL');
+        
+        if (!riskInput || !rrInput || !resultInput || !plInput) return;
         
         const updateEditPL = () => {
             const risk = riskInput.value.trim();
@@ -638,7 +713,9 @@
         console.log('Оновлюємо трейд:', updatedTrade);
 
         try {
-            const { data, error } = await db.from('trades').update(updatedTrade).eq('id', editingTradeId);
+            const { data, error } = await withRetry(() => 
+                db.from('trades').update(updatedTrade).eq('id', editingTradeId)
+            );
             if (error) {
                 console.error('Supabase error details:', error);
                 throw error;
@@ -675,7 +752,7 @@
         document.getElementById('deleteConfirmOverlay').classList.add('hidden');
 
         try {
-            const { error } = await db.from('trades').delete().eq('id', id);
+            const { error } = await withRetry(() => db.from('trades').delete().eq('id', id));
             if (error) throw error;
             loadTrades();
         } catch (err) {
@@ -692,54 +769,63 @@
     // ==================== Equity Chart ====================
 
     function updateChart(equityData) {
-        const ctx = document.getElementById('equityChart').getContext('2d');
+        const ctx = document.getElementById('equityChart');
+        if (!ctx) return;
+        
+        const ctx2d = ctx.getContext('2d');
+        if (!ctx2d) return;
+        
         if (chart) chart.destroy();
 
-        chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Start', ...trades.map((_, i) => `Trade ${i+1}`)],
-                datasets: [{
-                    label: 'Equity Curve (%)',
-                    data: equityData,
-                    borderColor: '#0066ff',
-                    backgroundColor: 'rgba(0,102,255,0.15)',
-                    fill: true,
-                    tension: 0.3,
-                    pointBackgroundColor: '#0066ff',
-                    pointRadius: 5,
-                    pointHoverRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    title: {
-                        display: true,
-                        text: 'Equity Curve',
-                        color: '#ccc',
-                        font: { size: 20 }
-                    }
+        try {
+            chart = new Chart(ctx2d, {
+                type: 'line',
+                data: {
+                    labels: ['Start', ...trades.map((_, i) => `Trade ${i+1}`)],
+                    datasets: [{
+                        label: 'Equity Curve (%)',
+                        data: equityData,
+                        borderColor: '#0066ff',
+                        backgroundColor: 'rgba(0,102,255,0.15)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#0066ff',
+                        pointRadius: 5,
+                        pointHoverRadius: 8
+                    }]
                 },
-                scales: {
-                    y: {
-                        grid: { color: '#222' },
-                        ticks: { color: '#aaa' },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
                         title: {
                             display: true,
-                            text: 'Return %',
-                            color: '#aaa'
+                            text: 'Equity Curve',
+                            color: '#ccc',
+                            font: { size: 20 }
                         }
                     },
-                    x: {
-                        grid: { color: '#222' },
-                        ticks: { color: '#aaa' }
+                    scales: {
+                        y: {
+                            grid: { color: '#222' },
+                            ticks: { color: '#aaa' },
+                            title: {
+                                display: true,
+                                text: 'Return %',
+                                color: '#aaa'
+                            }
+                        },
+                        x: {
+                            grid: { color: '#222' },
+                            ticks: { color: '#aaa' }
+                        }
                     }
                 }
-            }
-        });
+            });
+        } catch (err) {
+            console.error('Chart error:', err);
+        }
     }
 
     window.showEquityChart = function() {
@@ -756,11 +842,13 @@
         if (!currentUser) return;
 
         try {
-            const { data, error } = await db
-                .from('user_profiles')
-                .select('is_public')
-                .eq('user_id', currentUser.id)
-                .single();
+            const { data, error } = await withRetry(() =>
+                db
+                    .from('user_profiles')
+                    .select('is_public')
+                    .eq('user_id', currentUser.id)
+                    .single()
+            );
 
             if (error && error.code !== 'PGRST116') throw error;
 
@@ -781,14 +869,16 @@
         const isActive = toggle.classList.contains('active');
 
         try {
-            const { error } = await db
-                .from('user_profiles')
-                .upsert({
-                    user_id: currentUser.id,
-                    is_public: !isActive
-                }, {
-                    onConflict: 'user_id'
-                });
+            const { error } = await withRetry(() =>
+                db
+                    .from('user_profiles')
+                    .upsert({
+                        user_id: currentUser.id,
+                        is_public: !isActive
+                    }, {
+                        onConflict: 'user_id'
+                    })
+            );
 
             if (error) throw error;
 
@@ -814,13 +904,19 @@
     }
 
     window.copyShareLink = function() {
-        const link = document.getElementById('shareLink').textContent;
+        const linkEl = document.getElementById('shareLink');
+        if (!linkEl) return;
+        
+        const link = linkEl.textContent;
         navigator.clipboard.writeText(link).then(() => {
-            const original = document.getElementById('shareLink').textContent;
-            document.getElementById('shareLink').textContent = '✓ Скопійовано!';
+            const original = linkEl.textContent;
+            linkEl.textContent = '✓ Скопійовано!';
             setTimeout(() => {
-                document.getElementById('shareLink').textContent = original;
+                linkEl.textContent = original;
             }, 2000);
+        }).catch(err => {
+            console.error('Copy failed:', err);
+            alert('Не вдалося скопіювати посилання');
         });
     }
 
@@ -837,7 +933,7 @@
     // ==================== Data Migration ====================
 
     async function checkAndMigrateLocalData() {
-        const localTrades = JSON.parse(localStorage.getItem('gTradeJournalEquity')) || [];
+        const localTrades = JSON.parse(localStorage.getItem('gTradeJournalEquity') || '[]');
         if (localTrades.length === 0) return;
 
         if (!confirm(`Знайдено ${localTrades.length} трейдів у локальному сховищі. Імпортувати їх?`)) {
@@ -883,8 +979,9 @@
     }
 
     function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
         const div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = String(text);
         return div.innerHTML;
     }
 
@@ -898,3 +995,4 @@
     }
 
 })();
+
