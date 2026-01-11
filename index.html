@@ -131,8 +131,8 @@
                 </select>
             </div>
             <div class="form-actions">
-                <button class="cancel-btn" onclick="hideForm()">Cancel</button>
-                <button class="save-btn" onclick="addTrade()">Save</button>
+                <button class="cancel-btn" onclick="window.hideForm()">Cancel</button>
+                <button class="save-btn" onclick="window.addTrade()">Save</button>
             </div>
         </div>
     </div>
@@ -140,7 +140,7 @@
     <!-- Equity Chart -->
     <div id="equityOverlay">
         <div class="chart-container">
-            <button class="chart-close-btn" onclick="hideEquityChart()">Close</button>
+            <button class="chart-close-btn" onclick="window.hideEquityChart()">Close</button>
             <canvas id="equityChart"></canvas>
         </div>
     </div>
@@ -154,7 +154,7 @@
                 <div class="toggle-switch" id="shareToggle"></div>
             </div>
             <div id="shareLinkContainer" class="hidden">
-                <div class="share-link-box" id="shareLink" onclick="copyShareLink()">
+                <div class="share-link-box" id="shareLink" onclick="window.copyShareLink()">
                     Натисніть, щоб скопіювати
                 </div>
                 <p style="color: #888; font-size: 13px; margin: 0;">
@@ -162,7 +162,7 @@
                 </p>
             </div>
             <div class="form-actions">
-                <button class="btn secondary" onclick="closeShareModal()">Закрити</button>
+                <button class="btn secondary" onclick="window.closeShareModal()">Закрити</button>
             </div>
         </div>
     </div>
