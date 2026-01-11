@@ -5,7 +5,7 @@
     'use strict';
 
     // Version for cache busting
-    const APP_VERSION = '2.0.1';
+    const APP_VERSION = '2.0.2';
     console.log('G Trade Journal v' + APP_VERSION + ' (Pure Fetch API)');
 
     // Supabase Configuration
@@ -233,10 +233,10 @@
             handleAuth();
         }
         if (e.key === 'Escape') {
-            hideForm();
+            window.hideForm();
             window.cancelEditForm();
-            hideEquityChart();
-            closeShareModal();
+            window.hideEquityChart();
+            window.closeShareModal();
         }
     }
 
@@ -316,7 +316,7 @@
         }
     }
 
-    async function logout() {
+    window.logout = async function() {
         try {
             await signOut();
         } catch (e) {
@@ -601,8 +601,8 @@
 
             if (error) throw error;
 
-            console.log('Trade added:', data);
-            hideForm();
+        console.log('Trade added:', data);
+            window.hideForm();
             loadTrades();
         } catch (err) {
             console.error('Add trade error:', err);
