@@ -38,19 +38,20 @@ header {
 }
 
 .logo {
-    width: 160px;
+    width: 200px;
     height: auto;
     margin-bottom: 12px;
     filter: brightness(1.2);
 }
 
 h1 {
-    font-size: 36px;
+    font-size: 28px;
     font-weight: 800;
     margin: 0;
-    letter-spacing: 4px;
+    letter-spacing: 2px;
     color: #ffffff;
     text-align: center;
+    white-space: nowrap;
 }
 
 .header-buttons {
@@ -576,11 +577,12 @@ tr:hover {
     }
 
     .logo {
-        width: 120px;
+        width: 150px;
     }
 
     h1 {
-        font-size: 24px;
+        font-size: 20px;
+        letter-spacing: 1px;
     }
 
     .header-buttons {
