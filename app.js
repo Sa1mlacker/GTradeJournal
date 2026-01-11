@@ -5,7 +5,7 @@
     'use strict';
 
     // Version for cache busting
-    const APP_VERSION = '2.0.2';
+    const APP_VERSION = '2.0.5';
     console.log('G Trade Journal v' + APP_VERSION + ' (Pure Fetch API)');
 
     // Supabase Configuration
@@ -56,10 +56,19 @@
             });
             clearTimeout(timeoutId);
 
-            const data = await response.json();
+            let data = null;
+            const text = await response.text();
+            
+            if (text) {
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    data = text;
+                }
+            }
             
             if (!response.ok) {
-                throw new Error(data.message || `HTTP ${response.status}`);
+                throw new Error(data?.message || data?.error || `HTTP ${response.status}`);
             }
             
             return { data, error: null };
@@ -84,10 +93,16 @@
             body: JSON.stringify({ email, password })
         });
 
-        const data = await response.json();
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (e) {
+            const text = await response.text();
+            throw new Error(text || 'Invalid server response');
+        }
         
         if (!response.ok) {
-            throw new Error(data.error_description || data.msg || 'Login failed');
+            throw new Error(data?.error_description || data?.msg || 'Login failed');
         }
         
         return data;
@@ -103,23 +118,33 @@
             body: JSON.stringify({ email, password })
         });
 
-        const data = await response.json();
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (e) {
+            const text = await response.text();
+            throw new Error(text || 'Invalid server response');
+        }
         
         if (!response.ok) {
-            throw new Error(data.error_description || data.msg || 'Signup failed');
+            throw new Error(data?.error_description || data?.msg || 'Signup failed');
         }
         
         return data;
     }
 
     async function signOut() {
-        await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
-            method: 'POST',
-            headers: {
-                'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${authToken}`
-            }
-        });
+        try {
+            await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${authToken}`
+                }
+            });
+        } catch (e) {
+            console.log('Logout error (ignored):', e);
+        }
         authToken = null;
         currentUser = null;
     }
@@ -143,6 +168,7 @@
             currentUser = JSON.parse(savedUser);
             hideLoading();
             showApp();
+            setupEventListeners(); // Setup button listeners for main app
             loadTrades();
         } else {
             hideLoading();
@@ -356,6 +382,10 @@
         };
         return translations[msg] || msg;
     }
+
+    // Expose auth functions to window for inline handlers
+    window.handleAuth = handleAuth;
+    window.toggleAuthForm = toggleAuthForm;
 
     // ==================== Trades Management ====================
 
@@ -594,14 +624,23 @@
         console.log('Adding trade:', trade);
 
         try {
-            const { data, error } = await supabaseFetch('trades', {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
                 method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`,
+                    'Prefer': 'return=minimal'
+                },
                 body: JSON.stringify(trade)
             });
 
-            if (error) throw error;
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP ${response.status}: ${text}`);
+            }
 
-        console.log('Trade added:', data);
+            console.log('Trade added successfully');
             window.hideForm();
             loadTrades();
         } catch (err) {
@@ -710,12 +749,10 @@
         console.log('Updating trade:', updatedTrade);
 
         try {
-            const { data, error } = await supabaseFetch(`trades?id=eq.${editingTradeId}`, {
+            const { data } = await supabaseFetch(`trades?id=eq.${editingTradeId}`, {
                 method: 'PATCH',
                 body: JSON.stringify(updatedTrade)
             });
-
-            if (error) throw error;
 
             console.log('Trade updated:', data);
             window.cancelEditForm();
@@ -739,10 +776,9 @@
         document.getElementById('deleteConfirmOverlay').classList.add('hidden');
 
         try {
-            const { error } = await supabaseFetch(`trades?id=eq.${id}`, {
+            await supabaseFetch(`trades?id=eq.${id}`, {
                 method: 'DELETE'
             });
-            if (error) throw error;
             loadTrades();
         } catch (err) {
             console.error('Delete error:', err);
@@ -921,6 +957,9 @@
     window.closeShareModal = function() {
         document.getElementById('shareOverlay').classList.remove('active');
     }
+
+    window.toggleShare = toggleShare;
+    window.copyShareLink = copyShareLink;
 
     // ==================== Utilities ====================
 
