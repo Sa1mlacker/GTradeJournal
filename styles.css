@@ -27,20 +27,12 @@ header {
     position: relative;
 }
 
-.logo {
-    width: 160px;
-    height: auto;
-    margin-right: 20px;
-    filter: brightness(1.2);
-}
-
 h1 {
     font-size: 36px;
     font-weight: 800;
     margin: 0;
     letter-spacing: 4px;
     color: #ffffff;
-    flex: 1;
 }
 
 .header-buttons {
