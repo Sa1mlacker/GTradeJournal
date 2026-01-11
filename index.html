@@ -189,21 +189,21 @@
     <!-- Share Modal -->
     <div id="shareOverlay">
         <div class="share-box">
-            <h3>Поділитися журналом</h3>
+            <h3>Share Journal</h3>
             <div class="share-toggle">
-                <label>Публічний доступ</label>
+                <label>Public Access</label>
                 <div class="toggle-switch" id="shareToggle"></div>
             </div>
             <div id="shareLinkContainer" class="hidden">
                 <div class="share-link-box" id="shareLink" onclick="window.copyShareLink()">
-                    Натисніть, щоб скопіювати
+                    Click to copy
                 </div>
                 <p style="color: #888; font-size: 13px; margin: 0;">
-                    Будь-хто з цим посиланням зможе переглядати ваш журнал (тільки читання)
+                    Anyone with this link can view your journal (read-only)
                 </p>
             </div>
             <div class="form-actions">
-                <button class="btn secondary" onclick="window.closeShareModal()">Закрити</button>
+                <button class="btn secondary" onclick="window.closeShareModal()">Close</button>
             </div>
         </div>
     </div>
@@ -211,11 +211,11 @@
     <!-- Delete Confirmation Modal -->
     <div id="deleteConfirmOverlay" class="modal-overlay hidden">
         <div class="modal-box">
-            <h3>Видалити трейд?</h3>
-            <p>Ця дія не може бути скасована.</p>
+            <h3>Delete Trade?</h3>
+            <p>This action cannot be undone.</p>
             <div class="modal-actions">
-                <button class="btn secondary" onclick="window.cancelDelete()">Скасувати</button>
-                <button class="btn" style="background: #ff4444;" onclick="window.confirmDelete()">Видалити</button>
+                <button class="btn secondary" onclick="window.cancelDelete()">Cancel</button>
+                <button class="btn" style="background: #ff4444;" onclick="window.confirmDelete()">Delete</button>
             </div>
         </div>
     </div>
