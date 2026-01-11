@@ -349,7 +349,7 @@
         tbody.innerHTML = '';
 
         if (trades.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #666; padding: 40px;">Немає записів про трейди</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: #666; padding: 40px;">Немає записів про трейди</td></tr>';
             updateStats(0);
             return;
         }
@@ -376,12 +376,16 @@
             }[trade.session] || 'london';
 
             const tr = document.createElement('tr');
+            const tvHtml = trade.tradingview_url ? 
+                `<a href="${escapeHtml(trade.tradingview_url)}" target="_blank" class="tv-link">TradingView</a>` : 
+                '—';
             tr.innerHTML = `
                 <td><span class="pair">${escapeHtml(trade.asset)}</span></td>
                 <td class="date">${formatDate(trade.date)}</td>
                 <td><span class="badge badge-${sessionClass}">${escapeHtml(trade.session)}</span></td>
                 <td><span class="badge badge-${trade.direction.toLowerCase()}">${escapeHtml(trade.direction)}</span></td>
                 <td>${escapeHtml(trade.setup || '—')}</td>
+                <td>${tvHtml}</td>
                 <td>${escapeHtml(trade.risk || '—')}</td>
                 <td>${escapeHtml(trade.rr || '—')}</td>
                 <td class="${plClass}">${escapeHtml(trade.pl || '—')}</td>
@@ -403,7 +407,7 @@
 
     function showTradesError(message) {
         const tbody = document.getElementById('tradesBody');
-        tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #666;">${escapeHtml(message)}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: #666;">${escapeHtml(message)}</td></tr>`;
     }
 
     function updateStats(equity) {
@@ -452,6 +456,7 @@
         if (isViewOnly) return;
         document.getElementById('addFormOverlay').classList.add('active');
         document.getElementById('newDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('newTradingView').value = '';
         updateAutoPL();
     }
 
@@ -497,6 +502,7 @@
             session: document.getElementById('newSession').value,
             direction: document.getElementById('newDirection').value,
             setup: document.getElementById('newSetup').value.trim(),
+            tradingview_url: document.getElementById('newTradingView').value.trim(),
             risk: risk + '%',
             rr: rr,
             pl: pl,

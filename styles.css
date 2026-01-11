@@ -247,6 +247,17 @@ tr:hover {
     color: #ff4444;
 }
 
+.tv-link {
+    color: #0066ff;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.tv-link:hover {
+    text-decoration: underline;
+}
+
 /* Auth Overlay */
 #authOverlay {
     position: fixed;
