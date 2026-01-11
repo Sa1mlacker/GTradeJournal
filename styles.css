@@ -20,7 +20,9 @@ body {
 header {
     background: #000000;
     padding: 30px 40px;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     border-bottom: 1px solid #222;
     position: relative;
 }
@@ -34,9 +36,6 @@ h1 {
 }
 
 .header-buttons {
-    position: absolute;
-    top: 30px;
-    right: 30px;
     display: flex;
     gap: 16px;
 }
@@ -540,10 +539,19 @@ tr:hover {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
     .header-buttons {
-        position: static;
-        margin-top: 20px;
         justify-content: center;
+        flex-wrap: wrap;
     }
 
     .stats-grid {

@@ -459,6 +459,8 @@
         document.getElementById('addFormOverlay').classList.remove('active');
     }
 
+    window.cancelForm = window.hideForm;
+
     window.addTrade = async function() {
         if (isViewOnly || !currentUser) {
             alert('Помилка: Немає активного користувача');
@@ -529,7 +531,7 @@
         }
     }
 
-    async function deleteTrade(id) {
+    window.deleteTrade = async function(id) {
         if (isViewOnly || !currentUser) return;
         if (!confirm('Видалити трейд?')) return;
 
