@@ -140,6 +140,7 @@
         }
         if (e.key === 'Escape') {
             hideForm();
+            window.cancelEditForm();
             hideEquityChart();
             closeShareModal();
         }
@@ -395,9 +396,9 @@
 
             if (!isViewOnly) {
                 const editBtn = tr.querySelector('.edit-btn');
-                editBtn.addEventListener('click', () => openEditForm(trade));
+                editBtn.addEventListener('click', () => window.openEditForm(trade));
                 const deleteBtn = tr.querySelector('.delete-btn');
-                deleteBtn.addEventListener('click', () => deleteTrade(trade.id));
+                deleteBtn.addEventListener('click', () => window.deleteTrade(trade.id));
             }
 
             tbody.appendChild(tr);
