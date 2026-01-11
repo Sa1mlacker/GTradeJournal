@@ -170,13 +170,13 @@
         authMsg.textContent = "";
 
         if (isLoginMode) {
-            authTitle.textContent = "Вхід в G Trade Journal";
-            authPrimaryBtn.textContent = "Увійти";
-            authSecondaryBtn.textContent = "Реєстрація";
+            authTitle.textContent = "Sign In to G Trade Journal";
+            authPrimaryBtn.textContent = "Sign In";
+            authSecondaryBtn.textContent = "Sign Up";
         } else {
-            authTitle.textContent = "Реєстрація";
-            authPrimaryBtn.textContent = "Створити акаунт";
-            authSecondaryBtn.textContent = "Вже є акаунт? Увійти";
+            authTitle.textContent = "Sign Up";
+            authPrimaryBtn.textContent = "Create Account";
+            authSecondaryBtn.textContent = "Already have an account? Sign In";
         }
     }
 
@@ -201,15 +201,15 @@
 
         try {
             if (isLoginMode) {
-                showAuthInfo("Виконується вхід...");
+                showAuthInfo("Signing in...");
                 const { data, error } = await db.auth.signInWithPassword({
                     email: email,
                     password: password
                 });
                 if (error) throw error;
-                showAuthSuccess("Успішний вхід!");
+                showAuthSuccess("Signed in successfully!");
             } else {
-                showAuthInfo("Створення акаунта...");
+                showAuthInfo("Creating account...");
                 const { data, error } = await db.auth.signUp({
                     email: email,
                     password: password
@@ -217,9 +217,9 @@
                 if (error) throw error;
 
                 if (data.user && !data.session) {
-                    showAuthSuccess("Акаунт створено! Перевірте пошту для підтвердження.");
+                    showAuthSuccess("Account created! Check your email to confirm.");
                 } else {
-                    showAuthSuccess("Акаунт створено!");
+                    showAuthSuccess("Account created!");
                 }
             }
         } catch (error) {
@@ -252,15 +252,15 @@
 
     function translateError(msg) {
         const translations = {
-            "Invalid login credentials": "Невірний email або пароль",
-            "Email not confirmed": "Email не підтверджено",
-            "User already registered": "Користувач вже зареєстрований",
-            "Password should be at least 6 characters": "Пароль має бути не менше 6 символів",
-            "Unable to validate email address: invalid format": "Невірний формат email",
-            "Failed to fetch": "Помилка мережі. Перевірте підключення до інтернету."
+            "Invalid login credentials": "Invalid email or password",
+            "Email not confirmed": "Email not confirmed",
+            "User already registered": "User already registered",
+            "Password should be at least 6 characters": "Password must be at least 6 characters",
+            "Unable to validate email address: invalid format": "Invalid email format",
+            "Failed to fetch": "Network error. Please check your internet connection."
         };
         return translations[msg] || msg;
-    }
+    }}
 
     // ==================== User Profile ====================
 
