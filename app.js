@@ -4,7 +4,7 @@
     'use strict';
 
     // Version for cache busting - UPDATE THIS when making changes
-    const APP_VERSION = '1.0.8';
+    const APP_VERSION = '1.0.9';
     console.log('G Trade Journal v' + APP_VERSION);
 
     // Supabase Configuration (з config.js)
@@ -59,7 +59,7 @@
 
         // Register service worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js?v=1.0.8')
+            navigator.serviceWorker.register('/sw.js?v=1.0.9')
                 .then((registration) => {
                     console.log('ServiceWorker registered:', registration.scope);
                 })
@@ -247,30 +247,25 @@
         }
 
         authPrimaryBtn.disabled = true;
+        showAuthInfo("Signing in...");
+
+        // Add timeout for auth request
+        const authPromise = isLoginMode 
+            ? db.auth.signInWithPassword({ email, password })
+            : db.auth.signUp({ email, password });
+        
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Auth timeout - please check your internet connection')), 15000)
+        );
 
         try {
-            if (isLoginMode) {
-                showAuthInfo("Signing in...");
-                const { data, error } = await db.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-                if (error) throw error;
-                showAuthSuccess("Signed in successfully!");
-            } else {
-                showAuthInfo("Creating account...");
-                const { data, error } = await db.auth.signUp({
-                    email: email,
-                    password: password
-                });
-                if (error) throw error;
-
-                if (data.user && !data.session) {
-                    showAuthSuccess("Account created! Check your email to confirm.");
-                } else {
-                    showAuthSuccess("Account created!");
-                }
+            const { data, error } = await Promise.race([authPromise, timeoutPromise]);
+            
+            if (error) {
+                throw error;
             }
+
+            showAuthSuccess(isLoginMode ? "Signed in successfully!" : "Account created!");
         } catch (error) {
             console.error("Auth error:", error);
             showAuthError(translateError(error.message));
