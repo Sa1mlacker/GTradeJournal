@@ -4,7 +4,7 @@
     'use strict';
 
     // Version for cache busting - UPDATE THIS when making changes
-    const APP_VERSION = '1.0.7';
+    const APP_VERSION = '1.0.8';
     console.log('G Trade Journal v' + APP_VERSION);
 
     // Supabase Configuration (з config.js)
@@ -59,7 +59,7 @@
 
         // Register service worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js?v=1.0.7')
+            navigator.serviceWorker.register('/sw.js?v=1.0.8')
                 .then((registration) => {
                     console.log('ServiceWorker registered:', registration.scope);
                 })
