@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com https://r2cdn.perplexity.ai; font-src 'self' https://fonts.gstatic.com https://r2cdn.perplexity.ai; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <title>G Trade Journal</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Embedded Styles -->
+    <style>
+/* G Trade Journal - Styles */
+
+/* Reset & Base */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #000000;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1300px;
+    margin: 0 auto;
+    background: #000000;
+    min-height: 100vh;
+}
+
+/* Header */
+header {
+    background: #000000;
+    padding: 30px 40px;
+    text-align: center;
+    border-bottom: 1px solid #222;
+    position: relative;
+}
+
+h1 {
+    font-size: 36px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 4px;
+    color: #ffffff;
+}
+
+.header-buttons {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    display: flex;
+    gap: 16px;
+}
+
+/* Buttons */
+.btn {
+    background: #0066ff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s ease;
+}
+
+.btn:hover {
+    background: #0055dd;
+}
+
+.btn.secondary {
+    background: #333;
+}
+
+.btn.secondary:hover {
+    background: #444;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 30px 20px;
+}
+
+.stat-card {
+    background: #111111;
+    border-radius: 10px;
+    padding: 16px 24px;
+    width: 160px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    border: 1px solid #222;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #888;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 30px 30px 30px;
+}
+
+th {
+    text-align: left;
+    padding: 14px 10px;
+    font-weight: 600;
+    color: #888;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid #222;
+}
+
+td {
+    padding: 14px 10px;
+    border-bottom: 1px solid #111;
+    font-size: 14px;
+}
+
+tr:hover {
+    background: #151515;
+}
+
+/* Badges */
+.badge {
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-asia {
+    background: #2d1b3a;
+    color: #c9a7eb;
+}
+
+.badge-frankfurt {
+    background: #3a2d1b;
+    color: #e6b587;
+}
+
+.badge-london {
+    background: #1a3a6e;
+    color: #6eb5ff;
+}
+
+.badge-ny {
+    background: #1e4d2b;
+    color: #6dff8c;
+}
+
+.badge-long {
+    background: #1e4d2b;
+    color: #6dff8c;
+}
+
+.badge-short {
+    background: #5e1c1c;
+    color: #ff6b6b;
+}
+
+/* P/L Colors */
+.pl-positive {
+    color: #6dff8c;
+    font-weight: 700;
+}
+
+.pl-negative {
+    color: #ff6b6b;
+    font-weight: 700;
+}
+
+.pl-zero {
+    color: #aaaa00;
+    font-weight: 700;
+}
+
+.win-take {
+    color: #6dff8c;
+    font-weight: 700;
+}
+
+.win-stop {
+    color: #ff6b6b;
+    font-weight: 700;
+}
+
+.win-be {
+    color: #aaaa00;
+    font-weight: 700;
+}
+
+/* Table Details */
+.pair {
+    font-weight: 700;
+    color: #fff;
+}
+
+.date {
+    color: #aaa;
+    font-size: 13px;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.delete-btn:hover {
+    color: #ff4444;
+}
+
+/* Auth Overlay */
+#authOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+#authOverlay.hidden {
+    display: none;
+}
+
+.auth-box {
+    background: #111;
+    padding: 40px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 0 40px rgba(0,102,255,0.2);
+}
+
+.auth-box h2 {
+    margin-top: 0;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.auth-box input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 16px;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+.auth-box input::placeholder {
+    color: #777;
+}
+
+.auth-box input:focus {
+    outline: none;
+    border-color: #0066ff;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.auth-buttons .btn {
+    flex: 1;
+    padding: 12px;
+}
+
+.auth-msg {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+.auth-msg.error {
+    color: #ff4444;
+}
+
+.auth-msg.success {
+    color: #4caf50;
+}
+
+.auth-msg.info {
+    color: #aaa;
+}
+
+/* Add Form Modal */
+#addFormOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+#addFormOverlay.active {
+    display: flex;
+}
+
+#addForm {
+    background: #111111;
+    border-radius: 12px;
+    padding: 30px;
+    width: 100%;
+    max-width: 900px;
+    box-shadow: 0 0 40px rgba(0,102,255,0.2);
+    border: 1px solid #222;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.form-row > * {
+    flex: 1 1 130px;
+}
+
+.form-row input,
+.form-row select {
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #222;
+    color: #fff;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.form-actions button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.save-btn {
+    background: #0066ff;
+    color: white;
+}
+
+.cancel-btn {
+    background: #333;
+    color: #ccc;
+}
+
+/* Equity Chart */
+#equityOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+#equityOverlay.active {
+    display: flex;
+}
+
+.chart-container {
+    position: relative;
+    width: 90vw;
+    max-width: 1400px;
+    height: 80vh;
+    background: #111;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 0 40px rgba(0,102,255,0.2);
+}
+
+.chart-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #333;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.chart-close-btn:hover {
+    background: #555;
+}
+
+/* Share Modal */
+#shareOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    padding: 20px;
+}
+
+#shareOverlay.active {
+    display: flex;
+}
+
+.share-box {
+    background: #111;
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 0 40px rgba(0,102,255,0.2);
+}
+
+.share-box h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.share-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: #1a1a1a;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.share-toggle label {
+    font-weight: 600;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    background: #333;
+    border-radius: 13px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.toggle-switch.active {
+    background: #0066ff;
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.3s;
+}
+
+.toggle-switch.active::after {
+    left: 27px;
+}
+
+.share-link-box {
+    padding: 12px;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    word-break: break-all;
+    font-size: 13px;
+    color: #6eb5ff;
+    margin-bottom: 16px;
+    cursor: pointer;
+}
+
+.share-link-box:hover {
+    background: #222;
+}
+
+/* Utility Classes */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.view-only-banner {
+    background: #1e4d2b;
+    color: #6dff8c;
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    border-bottom: 1px solid #222;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-buttons {
+        position: static;
+        margin-top: 20px;
+        justify-content: center;
+    }
+
+    .stats-grid {
+        padding: 20px 10px;
+    }
+
+    table {
+        margin: 0 10px 20px 10px;
+        font-size: 12px;
+    }
+
+    th, td {
+        padding: 10px 6px;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .form-row > * {
+        flex: 1 1 100%;
+    }
+}
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" style="position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 3000;">
+        <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
+            <div style="color: #888; font-size: 16px;">Завантаження...</div>
+        </div>
+    </div>
+
+    <!-- Auth Overlay -->
+    <div id="authOverlay" class="hidden" style="display: none;">
+        <div class="auth-box">
+            <h2 id="authTitle">Вхід в G Trade Journal</h2>
+            <input id="authEmail" type="email" placeholder="Email" autocomplete="email">
+            <input id="authPassword" type="password" placeholder="Пароль" autocomplete="current-password">
+            <div class="auth-buttons">
+                <button class="btn" id="authPrimaryBtn">Увійти</button>
+                <button class="btn secondary" id="authSecondaryBtn">Реєстрація</button>
+            </div>
+            <div id="authMsg" class="auth-msg"></div>
+        </div>
+    </div>
+
+    <!-- View Only Banner -->
+    <div id="viewOnlyBanner" class="view-only-banner hidden">
+        📊 Ви переглядаєте публічний журнал. Створіть свій акаунт для ведення власного журналу!
+    </div>
+
+    <!-- Main App -->
+    <div class="container" id="app" style="display: none;">
+        <header>
+            <h1>📊 G TRADE JOURNAL</h1>
+            <div class="header-buttons" id="headerButtons">
+                <button class="btn" id="shareBtn">📤 Share</button>
+                <button class="btn" id="newTradeBtn">+ New</button>
+                <button class="btn" id="equityBtn">Equity Curve</button>
+                <button class="btn secondary" id="logoutBtn">Вийти</button>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalTrades">0</div>
+                <div class="stat-label">Total Trades</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="winrate">—</div>
+                <div class="stat-label">Winrate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgRisk">—</div>
+                <div class="stat-label">Avg Risk</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgRR">—</div>
+                <div class="stat-label">Avg RR</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalReturn">0%</div>
+                <div class="stat-label">Total Return</div>
+            </div>
+        </div>
+
+        <div id="tradesContainer">
+            <table id="tradesTable">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Date</th>
+                        <th>Session</th>
+                        <th>Dir</th>
+                        <th>Setup</th>
+                        <th>Risk</th>
+                        <th>RR</th>
+                        <th>P/L %</th>
+                        <th>Result</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tradesBody">
+                    <tr>
+                        <td colspan="10" class="loading">Завантаження...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Trade Modal -->
+    <div id="addFormOverlay">
+        <div id="addForm">
+            <div class="form-row">
+                <input type="text" id="newPair" placeholder="Asset" value="XAUUSD">
+                <input type="date" id="newDate">
+                <select id="newSession">
+                    <option value="Asia">Asia</option>
+                    <option value="Frankfurt">Frankfurt</option>
+                    <option value="London">London</option>
+                    <option value="New York">New York</option>
+                </select>
+                <select id="newDirection">
+                    <option value="Long">Long</option>
+                    <option value="Short">Short</option>
+                </select>
+                <input type="text" id="newSetup" placeholder="Setup">
+                <input type="number" step="0.01" id="newRisk" placeholder="Risk % (1.0)">
+                <input type="number" step="0.1" id="newRR" placeholder="RR (3)">
+                <input type="text" id="newPL" class="auto-field" placeholder="P/L % (auto)" readonly>
+                <select id="newResult">
+                    <option value="">Select Result</option>
+                    <option value="Take">Take</option>
+                    <option value="Stop">Stop</option>
+                    <option value="BE">BE</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="cancel-btn" onclick="hideForm()">Cancel</button>
+                <button class="save-btn" onclick="addTrade()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equity Chart -->
+    <div id="equityOverlay">
+        <div class="chart-container">
+            <button class="chart-close-btn" onclick="hideEquityChart()">Close</button>
+            <canvas id="equityChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareOverlay">
+        <div class="share-box">
+            <h3>Поділитися журналом</h3>
+            <div class="share-toggle">
+                <label>Публічний доступ</label>
+                <div class="toggle-switch" id="shareToggle"></div>
+            </div>
+            <div id="shareLinkContainer" class="hidden">
+                <div class="share-link-box" id="shareLink" onclick="copyShareLink()">
+                    Натисніть, щоб скопіювати
+                </div>
+                <p style="color: #888; font-size: 13px; margin: 0;">
+                    Будь-хто з цим посиланням зможе переглядати ваш журнал (тільки читання)
+                </p>
+            </div>
+            <div class="form-actions">
+                <button class="btn secondary" onclick="closeShareModal()">Закрити</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embedded Configuration and Application Script -->
+    <script>
+// Supabase Configuration
+window.CONFIG = {
+    SUPABASE_URL: "https://ixnjbdvabaanyvnakwue.supabase.co",
+    SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4bmpiZHZhYmFhbnl2bmFrd3VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxMjU2NjksImV4cCI6MjA4MzcwMTY2OX0.XVbat9-rhmkGW7D_8t9d-cqpz95orsqzgbakWUXvQGE"
+};
+
+// G Trade Journal - Main Application
+(function() {
+    'use strict';
+
+    // Supabase Configuration
+    if (!window.CONFIG) {
+        console.error('CONFIG не завантажено!');
+        alert('Помилка конфігурації');
+        throw new Error('CONFIG not loaded');
+    }
+
+    const SUPABASE_URL = window.CONFIG.SUPABASE_URL;
+    const SUPABASE_ANON_KEY = window.CONFIG.SUPABASE_ANON_KEY;
+
+    console.log('Supabase URL:', SUPABASE_URL);
+
+    if (!window.supabase) {
+        console.error('Supabase library не завантажено!');
+        alert('Помилка: Supabase library не завантажено');
+        throw new Error('Supabase library not loaded');
+    }
+
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Application State
+    let trades = [];
+    let chart = null;
+    let isLoginMode = true;
+    let currentUser = null;
+    let isViewOnly = false;
+    let viewUserId = null;
+
+    // DOM Elements
+    const loadingScreen = document.getElementById('loadingScreen');
+    const authOverlay = document.getElementById('authOverlay');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const authMsg = document.getElementById('authMsg');
+    const authTitle = document.getElementById('authTitle');
+    const authPrimaryBtn = document.getElementById('authPrimaryBtn');
+    const authSecondaryBtn = document.getElementById('authSecondaryBtn');
+    const app = document.getElementById('app');
+    const viewOnlyBanner = document.getElementById('viewOnlyBanner');
+
+    // ==================== Initialization ====================
+
+    function init() {
+        if (!checkSharedView()) {
+            setupEventListeners();
+            checkSession();
+        }
+    }
+
+    function checkSharedView() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user');
+
+        if (userId) {
+            isViewOnly = true;
+            viewUserId = userId;
+            hideLoading();
+            authOverlay.style.display = 'none';
+            authOverlay.classList.add('hidden');
+            app.style.display = 'block';
+            viewOnlyBanner.classList.remove('hidden');
+
+            // Show only equity chart button in view-only mode
+            document.getElementById('headerButtons').innerHTML =
+                '<button class="btn" id="equityBtn">Equity Curve</button>';
+            document.getElementById('equityBtn').addEventListener('click', showEquityChart);
+
+            loadSharedTrades(userId);
+            return true;
+        }
+        return false;
+    }
+
+    async function checkSession() {
+        try {
+            const { data: { session } } = await db.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                showApp();
+                loadTrades();
+            } else {
+                showAuth();
+            }
+        } catch (err) {
+            console.error('Session check error:', err);
+            showAuth();
+        }
+    }
+
+    function hideLoading() {
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+        }
+    }
+
+    function showApp() {
+        hideLoading();
+        authOverlay.style.display = 'none';
+        authOverlay.classList.add('hidden');
+        app.style.display = 'block';
+    }
+
+    function showAuth() {
+        hideLoading();
+        authOverlay.style.display = 'flex';
+        authOverlay.classList.remove('hidden');
+        app.style.display = 'none';
+    }
+
+    // ==================== Event Listeners ====================
+
+    function setupEventListeners() {
+        authPrimaryBtn.addEventListener('click', handleAuth);
+        authSecondaryBtn.addEventListener('click', toggleAuthForm);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('newTradeBtn').addEventListener('click', showForm);
+        document.getElementById('equityBtn').addEventListener('click', showEquityChart);
+        document.getElementById('shareBtn').addEventListener('click', showShareModal);
+        document.getElementById('shareToggle').addEventListener('click', toggleShare);
+
+        // Auto-calculate P/L
+        ['newRisk', 'newRR', 'newResult'].forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', updateAutoPL);
+            el.addEventListener('change', updateAutoPL);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', handleKeyboard);
+    }
+
+    function handleKeyboard(e) {
+        if (e.key === 'Enter' && !authOverlay.classList.contains('hidden')) {
+            handleAuth();
+        }
+        if (e.key === 'Escape') {
+            hideForm();
+            hideEquityChart();
+            closeShareModal();
+        }
+    }
+
+    // ==================== Authentication ====================
+
+    db.auth.onAuthStateChange(async (event, session) => {
+        if (session && !isViewOnly) {
+            currentUser = session.user;
+
+            // Створити профіль якщо його немає (для нових користувачів)
+            if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+                await ensureUserProfile();
+            }
+
+            showApp();
+            loadTrades();
+            checkAndMigrateLocalData();
+        } else if (!isViewOnly) {
+            showAuth();
+        }
+    });
+
+    function toggleAuthForm() {
+        isLoginMode = !isLoginMode;
+        authMsg.textContent = "";
+
+        if (isLoginMode) {
+            authTitle.textContent = "Вхід в G Trade Journal";
+            authPrimaryBtn.textContent = "Увійти";
+            authSecondaryBtn.textContent = "Реєстрація";
+        } else {
+            authTitle.textContent = "Реєстрація";
+            authPrimaryBtn.textContent = "Створити акаунт";
+            authSecondaryBtn.textContent = "Вже є акаунт? Увійти";
+        }
+    }
+
+    async function handleAuth() {
+        const email = authEmail.value.trim();
+        const password = authPassword.value;
+
+        if (!email) {
+            showAuthError("Введіть email");
+            return;
+        }
+        if (!password) {
+            showAuthError("Введіть пароль");
+            return;
+        }
+        if (password.length < 6) {
+            showAuthError("Пароль має бути не менше 6 символів");
+            return;
+        }
+
+        authPrimaryBtn.disabled = true;
+
+        try {
+            if (isLoginMode) {
+                showAuthInfo("Виконується вхід...");
+                const { data, error } = await db.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                if (error) throw error;
+                showAuthSuccess("Успішний вхід!");
+            } else {
+                showAuthInfo("Створення акаунта...");
+                const { data, error } = await db.auth.signUp({
+                    email: email,
+                    password: password
+                });
+                if (error) throw error;
+
+                if (data.user && !data.session) {
+                    showAuthSuccess("Акаунт створено! Перевірте пошту для підтвердження.");
+                } else {
+                    showAuthSuccess("Акаунт створено!");
+                }
+            }
+        } catch (error) {
+            console.error("Auth error:", error);
+            showAuthError(translateError(error.message));
+        } finally {
+            authPrimaryBtn.disabled = false;
+        }
+    }
+
+    async function logout() {
+        await db.auth.signOut();
+        window.location.reload();
+    }
+
+    function showAuthError(msg) {
+        authMsg.textContent = msg;
+        authMsg.className = 'auth-msg error';
+    }
+
+    function showAuthSuccess(msg) {
+        authMsg.textContent = msg;
+        authMsg.className = 'auth-msg success';
+    }
+
+    function showAuthInfo(msg) {
+        authMsg.textContent = msg;
+        authMsg.className = 'auth-msg info';
+    }
+
+    function translateError(msg) {
+        const translations = {
+            "Invalid login credentials": "Невірний email або пароль",
+            "Email not confirmed": "Email не підтверджено",
+            "User already registered": "Користувач вже зареєстрований",
+            "Password should be at least 6 characters": "Пароль має бути не менше 6 символів",
+            "Unable to validate email address: invalid format": "Невірний формат email",
+            "Failed to fetch": "Помилка мережі. Перевірте підключення до інтернету."
+        };
+        return translations[msg] || msg;
+    }
+
+    // ==================== User Profile ====================
+
+    async function ensureUserProfile() {
+        if (!currentUser) return;
+
+        try {
+            // Перевірити чи є профіль
+            const { data: existingProfile } = await db
+                .from('user_profiles')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .single();
+
+            // Якщо профілю немає - створити
+            if (!existingProfile) {
+                const { error } = await db
+                    .from('user_profiles')
+                    .insert({
+                        user_id: currentUser.id,
+                        is_public: false
+                    });
+
+                if (error) {
+                    console.error('Error creating user profile:', error);
+                }
+            }
+        } catch (err) {
+            console.error('Error ensuring user profile:', err);
+        }
+    }
+
+    // ==================== Trades Management ====================
+
+    async function loadTrades() {
+        if (!currentUser) return;
+
+        try {
+            const { data, error } = await db
+                .from('trades')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('date', { ascending: false });
+
+            if (error) throw error;
+
+            trades = data || [];
+            renderTrades();
+        } catch (err) {
+            console.error('Load trades error:', err);
+            showTradesError('Помилка завантаження даних');
+        }
+    }
+
+    async function loadSharedTrades(userId) {
+        try {
+            // Check if user has public sharing enabled
+            const { data: profileData, error: profileError } = await db
+                .from('user_profiles')
+                .select('is_public')
+                .eq('user_id', userId)
+                .single();
+
+            if (profileError || !profileData || !profileData.is_public) {
+                showTradesError('Цей журнал не є публічним');
+                return;
+            }
+
+            const { data, error } = await db
+                .from('trades')
+                .select('*')
+                .eq('user_id', userId)
+                .order('date', { ascending: false });
+
+            if (error) throw error;
+
+            trades = data || [];
+            renderTrades();
+        } catch (err) {
+            console.error('Load shared trades error:', err);
+            showTradesError('Помилка завантаження даних');
+        }
+    }
+
+    function renderTrades() {
+        const tbody = document.getElementById('tradesBody');
+        tbody.innerHTML = '';
+
+        if (trades.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #666; padding: 40px;">Немає записів про трейди</td></tr>';
+            updateStats(0);
+            return;
+        }
+
+        let equity = 0;
+        const equityData = [0];
+
+        trades.forEach((trade) => {
+            const plValue = trade.pl ? parseFloat(trade.pl) : 0;
+            equity += plValue;
+            equityData.push(equity);
+
+            const plClass = plValue > 0 ? 'pl-positive' : plValue < 0 ? 'pl-negative' : 'pl-zero';
+            const resultText = trade.result || '—';
+            const resultClass = trade.result === 'Take' ? 'win-take' :
+                               trade.result === 'Stop' ? 'win-stop' :
+                               trade.result === 'BE' ? 'win-be' : '';
+
+            const sessionClass = {
+                'Asia': 'asia',
+                'Frankfurt': 'frankfurt',
+                'London': 'london',
+                'New York': 'ny'
+            }[trade.session] || 'london';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="pair">${escapeHtml(trade.asset)}</span></td>
+                <td class="date">${formatDate(trade.date)}</td>
+                <td><span class="badge badge-${sessionClass}">${escapeHtml(trade.session)}</span></td>
+                <td><span class="badge badge-${trade.direction.toLowerCase()}">${escapeHtml(trade.direction)}</span></td>
+                <td>${escapeHtml(trade.setup || '—')}</td>
+                <td>${escapeHtml(trade.risk || '—')}</td>
+                <td>${escapeHtml(trade.rr || '—')}</td>
+                <td class="${plClass}">${escapeHtml(trade.pl || '—')}</td>
+                <td class="${resultClass}">${escapeHtml(resultText)}</td>
+                <td>${isViewOnly ? '' : `<button class="delete-btn" data-id="${trade.id}">✕</button>`}</td>
+            `;
+
+            if (!isViewOnly) {
+                const deleteBtn = tr.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', () => deleteTrade(trade.id));
+            }
+
+            tbody.appendChild(tr);
+        });
+
+        updateStats(equity);
+        updateChart(equityData);
+    }
+
+    function showTradesError(message) {
+        const tbody = document.getElementById('tradesBody');
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #666;">${escapeHtml(message)}</td></tr>`;
+    }
+
+    function updateStats(equity) {
+        const total = trades.length;
+        const wins = trades.filter(t => t.result === 'Take').length;
+        const winrate = total > 0 ? ((wins / total) * 100).toFixed(1) + '%' : '—';
+
+        const risks = trades.map(t => parseFloat(t.risk)).filter(v => !isNaN(v));
+        const avgRisk = risks.length > 0 ? (risks.reduce((a,b) => a+b, 0) / risks.length).toFixed(2) + '%' : '—';
+
+        const rrs = trades.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
+        const avgRR = rrs.length > 0 ? (rrs.reduce((a,b) => a+b, 0) / rrs.length).toFixed(2) : '—';
+
+        document.getElementById('totalTrades').textContent = total;
+        document.getElementById('winrate').textContent = winrate;
+        document.getElementById('avgRisk').textContent = avgRisk;
+        document.getElementById('avgRR').textContent = avgRR;
+        document.getElementById('totalReturn').textContent = equity.toFixed(2) + '%';
+    }
+
+    // ==================== Trade Form ====================
+
+    function calculatePL(riskPercent, rr, result) {
+        if (!riskPercent || !result) return '—';
+        riskPercent = parseFloat(riskPercent);
+
+        if (result === 'Take' && rr) {
+            return (riskPercent * parseFloat(rr)).toFixed(2) + '%';
+        } else if (result === 'Stop') {
+            return '-' + riskPercent.toFixed(2) + '%';
+        } else if (result === 'BE') {
+            return '0%';
+        }
+        return '—';
+    }
+
+    function updateAutoPL() {
+        const risk = document.getElementById('newRisk').value;
+        const rr = document.getElementById('newRR').value;
+        const result = document.getElementById('newResult').value;
+        const pl = calculatePL(risk, rr, result);
+        document.getElementById('newPL').value = pl;
+    }
+
+    window.showForm = function() {
+        if (isViewOnly) return;
+        document.getElementById('addFormOverlay').classList.add('active');
+        document.getElementById('newDate').value = new Date().toISOString().split('T')[0];
+        updateAutoPL();
+    }
+
+    window.hideForm = function() {
+        document.getElementById('addFormOverlay').classList.remove('active');
+    }
+
+    window.addTrade = async function() {
+        if (isViewOnly || !currentUser) {
+            alert('Помилка: Немає активного користувача');
+            return;
+        }
+
+        const pair = document.getElementById('newPair').value.trim() || 'XAUUSD';
+        const date = document.getElementById('newDate').value;
+
+        if (!date) {
+            alert('Виберіть дату');
+            return;
+        }
+
+        const risk = document.getElementById('newRisk').value.trim();
+        const rr = document.getElementById('newRR').value.trim();
+        const result = document.getElementById('newResult').value;
+
+        if (!risk) {
+            alert('Введіть Risk %');
+            return;
+        }
+        if (!result) {
+            alert('Виберіть Result');
+            return;
+        }
+
+        const pl = calculatePL(risk, rr, result);
+
+        const trade = {
+            user_id: currentUser.id,
+            asset: pair.toUpperCase(),
+            date: date,
+            session: document.getElementById('newSession').value,
+            direction: document.getElementById('newDirection').value,
+            setup: document.getElementById('newSetup').value.trim(),
+            risk: risk + '%',
+            rr: rr,
+            pl: pl,
+            result: result
+        };
+
+        try {
+            const { data, error } = await db.from('trades').insert(trade);
+            if (error) throw error;
+
+            hideForm();
+            loadTrades();
+        } catch (err) {
+            console.error('Add trade error:', err);
+            alert('Помилка при додаванні трейду: ' + err.message);
+        }
+    }
+
+    async function deleteTrade(id) {
+        if (isViewOnly || !currentUser) return;
+        if (!confirm('Видалити трейд?')) return;
+
+        try {
+            const { error } = await db.from('trades').delete().eq('id', id);
+            if (error) throw error;
+            loadTrades();
+        } catch (err) {
+            console.error('Delete error:', err);
+            alert('Помилка при видаленні трейду');
+        }
+    }
+
+    // ==================== Equity Chart ====================
+
+    function updateChart(equityData) {
+        const ctx = document.getElementById('equityChart').getContext('2d');
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Start', ...trades.map((_, i) => `Trade ${i+1}`)],
+                datasets: [{
+                    label: 'Equity Curve (%)',
+                    data: equityData,
+                    borderColor: '#0066ff',
+                    backgroundColor: 'rgba(0,102,255,0.15)',
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: '#0066ff',
+                    pointRadius: 5,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Equity Curve',
+                        color: '#ccc',
+                        font: { size: 20 }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#222' },
+                        ticks: { color: '#aaa' },
+                        title: {
+                            display: true,
+                            text: 'Return %',
+                            color: '#aaa'
+                        }
+                    },
+                    x: {
+                        grid: { color: '#222' },
+                        ticks: { color: '#aaa' }
+                    }
+                }
+            }
+        });
+    }
+
+    window.showEquityChart = function() {
+        document.getElementById('equityOverlay').classList.add('active');
+    }
+
+    window.hideEquityChart = function() {
+        document.getElementById('equityOverlay').classList.remove('active');
+    }
+
+    // ==================== Share Functionality ====================
+
+    async function loadShareSettings() {
+        if (!currentUser) return;
+
+        try {
+            const { data, error } = await db
+                .from('user_profiles')
+                .select('is_public')
+                .eq('user_id', currentUser.id)
+                .single();
+
+            if (error && error.code !== 'PGRST116') throw error;
+
+            if (data && data.is_public) {
+                document.getElementById('shareToggle').classList.add('active');
+                document.getElementById('shareLinkContainer').classList.remove('hidden');
+                updateShareLink();
+            }
+        } catch (err) {
+            console.error('Load share settings error:', err);
+        }
+    }
+
+    async function toggleShare() {
+        if (!currentUser) return;
+
+        const toggle = document.getElementById('shareToggle');
+        const isActive = toggle.classList.contains('active');
+
+        try {
+            const { error } = await db
+                .from('user_profiles')
+                .upsert({
+                    user_id: currentUser.id,
+                    is_public: !isActive
+                }, {
+                    onConflict: 'user_id'
+                });
+
+            if (error) throw error;
+
+            toggle.classList.toggle('active');
+            const linkContainer = document.getElementById('shareLinkContainer');
+
+            if (!isActive) {
+                linkContainer.classList.remove('hidden');
+                updateShareLink();
+            } else {
+                linkContainer.classList.add('hidden');
+            }
+        } catch (err) {
+            console.error('Toggle share error:', err);
+            alert('Помилка при зміні налаштувань');
+        }
+    }
+
+    function updateShareLink() {
+        if (!currentUser) return;
+        const link = `${window.location.origin}${window.location.pathname}?user=${currentUser.id}`;
+        document.getElementById('shareLink').textContent = link;
+    }
+
+    window.copyShareLink = function() {
+        const link = document.getElementById('shareLink').textContent;
+        navigator.clipboard.writeText(link).then(() => {
+            const original = document.getElementById('shareLink').textContent;
+            document.getElementById('shareLink').textContent = '✓ Скопійовано!';
+            setTimeout(() => {
+                document.getElementById('shareLink').textContent = original;
+            }, 2000);
+        });
+    }
+
+    window.showShareModal = function() {
+        if (isViewOnly) return;
+        document.getElementById('shareOverlay').classList.add('active');
+        loadShareSettings();
+    }
+
+    window.closeShareModal = function() {
+        document.getElementById('shareOverlay').classList.remove('active');
+    }
+
+    // ==================== Data Migration ====================
+
+    async function checkAndMigrateLocalData() {
+        const localTrades = JSON.parse(localStorage.getItem('gTradeJournalEquity')) || [];
+        if (localTrades.length === 0) return;
+
+        if (!confirm(`Знайдено ${localTrades.length} трейдів у локальному сховищі. Імпортувати їх?`)) {
+            localStorage.removeItem('gTradeJournalEquity');
+            return;
+        }
+
+        try {
+            for (const trade of localTrades) {
+                await db.from('trades').insert({
+                    user_id: currentUser.id,
+                    asset: trade.pair,
+                    date: trade.date,
+                    session: trade.session,
+                    direction: trade.direction,
+                    setup: trade.setup,
+                    risk: trade.risk,
+                    rr: trade.rr,
+                    pl: trade.pl,
+                    result: trade.result
+                });
+            }
+
+            localStorage.removeItem('gTradeJournalEquity');
+            alert('Дані успішно імпортовано!');
+            loadTrades();
+        } catch (err) {
+            console.error('Migration error:', err);
+            alert('Помилка при імпорті даних');
+        }
+    }
+
+    // ==================== Utilities ====================
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '—';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ==================== Initialize Application ====================
+
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+✅ ОСТАТОЧНЕ ВИПРАВЛЕННЯ CSP
+
+Проблема: Chart.js намагався завантажити source map з cdn.jsdelivr.net
+
+Рішення: Додано https://cdn.jsdelivr.net до connect-src
+
+📦 ФІНАЛЬНИЙ АРХІВ: g-journal-deploy-final.zip
+
+ЩО ЗМІНЕНО В index.html:
+
+Було:
+connect-src 'self' https://*.supabase.co
+
+Стало:
+connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net
+
+---
+
+КОМАНДИ ДЛЯ ОНОВЛЕННЯ:
+
+cd /шлях/до/проекту
+git add index.html
+git commit -m "Fix CSP: add cdn.jsdelivr.net to connect-src"
+git push origin main
+
+Або просто завантажте новий index.html через GitHub web interface.
+
+---
+
+✅ ПІСЛЯ ЦЬОГО ВСЕ МАЄ ЗАПРАЦЮВАТИ!
+
+Якщо ще щось - пишіть!

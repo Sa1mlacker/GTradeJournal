@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com https://r2cdn.perplexity.ai; font-src 'self' https://fonts.gstatic.com https://r2cdn.perplexity.ai; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <title>G Trade Journal</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" style="position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 3000;">
+        <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
+            <div style="color: #888; font-size: 16px;">Завантаження...</div>
+        </div>
+    </div>
+
+    <!-- Auth Overlay -->
+    <div id="authOverlay" class="hidden" style="display: none;">
+        <div class="auth-box">
+            <h2 id="authTitle">Вхід в G Trade Journal</h2>
+            <input id="authEmail" type="email" placeholder="Email" autocomplete="email">
+            <input id="authPassword" type="password" placeholder="Пароль" autocomplete="current-password">
+            <div class="auth-buttons">
+                <button class="btn" id="authPrimaryBtn">Увійти</button>
+                <button class="btn secondary" id="authSecondaryBtn">Реєстрація</button>
+            </div>
+            <div id="authMsg" class="auth-msg"></div>
+        </div>
+    </div>
+
+    <!-- View Only Banner -->
+    <div id="viewOnlyBanner" class="view-only-banner hidden">
+        📊 Ви переглядаєте публічний журнал. Створіть свій акаунт для ведення власного журналу!
+    </div>
+
+    <!-- Main App -->
+    <div class="container" id="app" style="display: none;">
+        <header>
+            <h1>📊 G TRADE JOURNAL</h1>
+            <div class="header-buttons" id="headerButtons">
+                <button class="btn" id="shareBtn">📤 Share</button>
+                <button class="btn" id="newTradeBtn">+ New</button>
+                <button class="btn" id="equityBtn">Equity Curve</button>
+                <button class="btn secondary" id="logoutBtn">Вийти</button>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalTrades">0</div>
+                <div class="stat-label">Total Trades</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="winrate">—</div>
+                <div class="stat-label">Winrate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgRisk">—</div>
+                <div class="stat-label">Avg Risk</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgRR">—</div>
+                <div class="stat-label">Avg RR</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalReturn">0%</div>
+                <div class="stat-label">Total Return</div>
+            </div>
+        </div>
+
+        <div id="tradesContainer">
+            <table id="tradesTable">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Date</th>
+                        <th>Session</th>
+                        <th>Dir</th>
+                        <th>Setup</th>
+                        <th>Risk</th>
+                        <th>RR</th>
+                        <th>P/L %</th>
+                        <th>Result</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tradesBody">
+                    <tr>
+                        <td colspan="10" class="loading">Завантаження...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Trade Modal -->
+    <div id="addFormOverlay">
+        <div id="addForm">
+            <div class="form-row">
+                <input type="text" id="newPair" placeholder="Asset" value="XAUUSD">
+                <input type="date" id="newDate">
+                <select id="newSession">
+                    <option value="Asia">Asia</option>
+                    <option value="Frankfurt">Frankfurt</option>
+                    <option value="London">London</option>
+                    <option value="New York">New York</option>
+                </select>
+                <select id="newDirection">
+                    <option value="Long">Long</option>
+                    <option value="Short">Short</option>
+                </select>
+                <input type="text" id="newSetup" placeholder="Setup">
+                <input type="number" step="0.01" id="newRisk" placeholder="Risk % (1.0)">
+                <input type="number" step="0.1" id="newRR" placeholder="RR (3)">
+                <input type="text" id="newPL" class="auto-field" placeholder="P/L % (auto)" readonly>
+                <select id="newResult">
+                    <option value="">Select Result</option>
+                    <option value="Take">Take</option>
+                    <option value="Stop">Stop</option>
+                    <option value="BE">BE</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="cancel-btn" onclick="hideForm()">Cancel</button>
+                <button class="save-btn" onclick="addTrade()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equity Chart -->
+    <div id="equityOverlay">
+        <div class="chart-container">
+            <button class="chart-close-btn" onclick="hideEquityChart()">Close</button>
+            <canvas id="equityChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareOverlay">
+        <div class="share-box">
+            <h3>Поділитися журналом</h3>
+            <div class="share-toggle">
+                <label>Публічний доступ</label>
+                <div class="toggle-switch" id="shareToggle"></div>
+            </div>
+            <div id="shareLinkContainer" class="hidden">
+                <div class="share-link-box" id="shareLink" onclick="copyShareLink()">
+                    Натисніть, щоб скопіювати
+                </div>
+                <p style="color: #888; font-size: 13px; margin: 0;">
+                    Будь-хто з цим посиланням зможе переглядати ваш журнал (тільки читання)
+                </p>
+            </div>
+            <div class="form-actions">
+                <button class="btn secondary" onclick="closeShareModal()">Закрити</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration (must load before app.js) -->
+    <script src="config.js"></script>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
