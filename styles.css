@@ -21,17 +21,20 @@ header {
     background: #000000;
     padding: 30px 40px;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: flex-start;
     border-bottom: 1px solid #222;
-    position: relative;
+}
+
+.header-spacer {
+    flex: 1;
 }
 
 .header-center {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 0;
+    flex: 0 0 auto;
 }
 
 .logo {
@@ -47,15 +50,15 @@ h1 {
     margin: 0;
     letter-spacing: 4px;
     color: #ffffff;
+    text-align: center;
 }
 
 .header-buttons {
     display: flex;
     gap: 16px;
     white-space: nowrap;
-    position: absolute;
-    right: 40px;
-    top: 30px;
+    flex: 1;
+    justify-content: flex-end;
 }
 
 /* Buttons */
@@ -563,6 +566,10 @@ tr:hover {
         padding: 20px;
     }
 
+    .header-spacer {
+        display: none;
+    }
+
     .header-center {
         width: 100%;
         margin-bottom: 20px;
@@ -577,7 +584,8 @@ tr:hover {
     }
 
     .header-buttons {
-        position: static;
+        width: 100%;
+        flex: 0;
         justify-content: center;
         flex-wrap: wrap;
     }
