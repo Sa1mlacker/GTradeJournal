@@ -4,7 +4,7 @@
     'use strict';
 
     // Version for cache busting - UPDATE THIS when making changes
-    const APP_VERSION = '1.0.5';
+    const APP_VERSION = '1.0.6';
     console.log('G Trade Journal v' + APP_VERSION);
 
     // Supabase Configuration (з config.js)
@@ -50,9 +50,16 @@
     // ==================== Initialization ====================
 
     function init() {
+        // Safety timeout - hide loading screen after 15 seconds regardless
+        const safetyTimeout = setTimeout(() => {
+            console.log('Safety timeout reached, hiding loading screen');
+            hideLoading();
+            showAuth(); // Show login screen as fallback
+        }, 15000);
+
         // Register service worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js?v=1.0.5')
+            navigator.serviceWorker.register('/sw.js?v=1.0.6')
                 .then((registration) => {
                     console.log('ServiceWorker registered:', registration.scope);
                 })
@@ -72,7 +79,11 @@
 
         if (!checkSharedView()) {
             setupEventListeners();
-            checkSession();
+            checkSession().finally(() => {
+                clearTimeout(safetyTimeout);
+            });
+        } else {
+            clearTimeout(safetyTimeout);
         }
     }
 
@@ -102,7 +113,14 @@
 
     async function checkSession() {
         try {
-            const { data: { session } } = await db.auth.getSession();
+            // Add timeout for session check
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Session check timeout')), 10000)
+            );
+            
+            const sessionPromise = db.auth.getSession();
+            const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+            
             if (session) {
                 currentUser = session.user;
                 showApp();
@@ -112,6 +130,7 @@
             }
         } catch (err) {
             console.error('Session check error:', err);
+            // Still show auth even on error
             showAuth();
         }
     }
@@ -119,6 +138,7 @@
     function hideLoading() {
         if (loadingScreen) {
             loadingScreen.style.display = 'none';
+            loadingScreen.remove(); // Remove from DOM to prevent any issues
         }
     }
 
