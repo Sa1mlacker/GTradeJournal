@@ -11,8 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <!-- External Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css?v=1.0.2">
@@ -222,10 +221,7 @@
         </div>
     </div>
 
-    <!-- Configuration (must load before app.js) -->
-    <script src="config.js"></script>
-
-    <!-- Application Script -->
-    <script src="app.js?v=1.0.9"></script>
+    <!-- Application Script (Pure Fetch API - No Supabase SDK needed) -->
+    <script src="app.js?v=2.0.0"></script>
 </body>
 </html>
