@@ -27,6 +27,20 @@ header {
     position: relative;
 }
 
+.header-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.logo {
+    width: 160px;
+    height: auto;
+    margin-bottom: 12px;
+    filter: brightness(1.2);
+}
+
 h1 {
     font-size: 36px;
     font-weight: 800;
@@ -38,6 +52,7 @@ h1 {
 .header-buttons {
     display: flex;
     gap: 16px;
+    white-space: nowrap;
 }
 
 /* Buttons */
@@ -543,6 +558,14 @@ tr:hover {
         flex-direction: column;
         gap: 16px;
         padding: 20px;
+    }
+
+    .header-center {
+        width: 100%;
+    }
+
+    .logo {
+        width: 120px;
     }
 
     h1 {
