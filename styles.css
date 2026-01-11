@@ -330,29 +330,15 @@ tr:hover {
 #deleteConfirmOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2001;
-}
-
-#deleteConfirmOverlay.hidden {
-    display: none;
-}
-
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
+    background: rgba(0,0,0,0.95);
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 2001;
+    z-index: 3000;
 }
 
-.modal-overlay.hidden {
-    display: none !important;
+#deleteConfirmOverlay:not(.hidden) {
+    display: flex !important;
 }
 
 .modal-box {
