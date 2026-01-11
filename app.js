@@ -185,15 +185,15 @@
         const password = authPassword.value;
 
         if (!email) {
-            showAuthError("Введіть email");
+            showAuthError("Enter email");
             return;
         }
         if (!password) {
-            showAuthError("Введіть пароль");
+            showAuthError("Enter password");
             return;
         }
         if (password.length < 6) {
-            showAuthError("Пароль має бути не менше 6 символів");
+            showAuthError("Password must be at least 6 characters");
             return;
         }
 
@@ -260,7 +260,7 @@
             "Failed to fetch": "Network error. Please check your internet connection."
         };
         return translations[msg] || msg;
-    }}
+    }
 
     // ==================== User Profile ====================
 
