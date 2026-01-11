@@ -390,10 +390,12 @@
                 <td>${escapeHtml(trade.rr || '—')}</td>
                 <td class="${plClass}">${escapeHtml(trade.pl || '—')}</td>
                 <td class="${resultClass}">${escapeHtml(resultText)}</td>
-                <td>${isViewOnly ? '' : `<button class="delete-btn" data-id="${trade.id}">✕</button>`}</td>
+                <td class="actions-cell">${isViewOnly ? '' : `<button class="edit-btn" data-id="${trade.id}">✎</button><button class="delete-btn" data-id="${trade.id}">✕</button>`}</td>
             `;
 
             if (!isViewOnly) {
+                const editBtn = tr.querySelector('.edit-btn');
+                editBtn.addEventListener('click', () => openEditForm(trade));
                 const deleteBtn = tr.querySelector('.delete-btn');
                 deleteBtn.addEventListener('click', () => deleteTrade(trade.id));
             }
@@ -526,6 +528,128 @@
 
             // Детальніше про помилку
             let errorMsg = 'Помилка при додаванні трейду';
+            if (err.message) {
+                errorMsg += ': ' + err.message;
+            }
+            if (err.code) {
+                errorMsg += ' (код: ' + err.code + ')';
+            }
+
+            alert(errorMsg);
+        }
+    }
+
+    // ==================== Edit Trade ====================
+
+    let editingTradeId = null;
+
+    window.openEditForm = function(trade) {
+        if (isViewOnly || !currentUser) return;
+        
+        editingTradeId = trade.id;
+        
+        document.getElementById('editPair').value = trade.asset || '';
+        document.getElementById('editDate').value = trade.date || '';
+        document.getElementById('editSession').value = trade.session || 'London';
+        document.getElementById('editDirection').value = trade.direction || 'Long';
+        document.getElementById('editSetup').value = trade.setup || '';
+        document.getElementById('editTradingView').value = trade.tradingview_url || '';
+        
+        const riskValue = trade.risk ? trade.risk.replace('%', '') : '';
+        document.getElementById('editRisk').value = riskValue;
+        document.getElementById('editRR').value = trade.rr || '';
+        document.getElementById('editResult').value = trade.result || '';
+        document.getElementById('editPL').value = trade.pl || '';
+        
+        document.getElementById('editFormOverlay').classList.add('active');
+        setupEditFormListeners();
+    }
+
+    function setupEditFormListeners() {
+        const riskInput = document.getElementById('editRisk');
+        const rrInput = document.getElementById('editRR');
+        const resultInput = document.getElementById('editResult');
+        const plInput = document.getElementById('editPL');
+        
+        const updateEditPL = () => {
+            const risk = riskInput.value.trim();
+            const rr = rrInput.value.trim();
+            const result = resultInput.value;
+            plInput.value = calculatePL(risk, rr, result);
+        };
+        
+        riskInput.removeEventListener('change', updateEditPL);
+        rrInput.removeEventListener('change', updateEditPL);
+        resultInput.removeEventListener('change', updateEditPL);
+        
+        riskInput.addEventListener('change', updateEditPL);
+        rrInput.addEventListener('change', updateEditPL);
+        resultInput.addEventListener('change', updateEditPL);
+    }
+
+    window.cancelEditForm = function() {
+        document.getElementById('editFormOverlay').classList.remove('active');
+        editingTradeId = null;
+    }
+
+    window.saveEditTrade = async function() {
+        if (isViewOnly || !currentUser || !editingTradeId) {
+            alert('Помилка: Немає активного користувача');
+            return;
+        }
+
+        const pair = document.getElementById('editPair').value.trim() || 'XAUUSD';
+        const date = document.getElementById('editDate').value;
+
+        if (!date) {
+            alert('Виберіть дату');
+            return;
+        }
+
+        const risk = document.getElementById('editRisk').value.trim();
+        const rr = document.getElementById('editRR').value.trim();
+        const result = document.getElementById('editResult').value;
+
+        if (!risk) {
+            alert('Введіть Risk %');
+            return;
+        }
+        if (!result) {
+            alert('Виберіть Result');
+            return;
+        }
+
+        const pl = calculatePL(risk, rr, result);
+
+        const updatedTrade = {
+            asset: pair.toUpperCase(),
+            date: date,
+            session: document.getElementById('editSession').value,
+            direction: document.getElementById('editDirection').value,
+            setup: document.getElementById('editSetup').value.trim(),
+            tradingview_url: document.getElementById('editTradingView').value.trim(),
+            risk: risk + '%',
+            rr: rr,
+            pl: pl,
+            result: result
+        };
+
+        console.log('Оновлюємо трейд:', updatedTrade);
+
+        try {
+            const { data, error } = await db.from('trades').update(updatedTrade).eq('id', editingTradeId);
+            if (error) {
+                console.error('Supabase error details:', error);
+                throw error;
+            }
+
+            console.log('Трейд успішно оновлено:', data);
+            window.cancelEditForm();
+            loadTrades();
+        } catch (err) {
+            console.error('Update trade error:', err);
+
+            let errorMsg = 'Помилка при оновленні трейду';
             if (err.message) {
                 errorMsg += ': ' + err.message;
             }

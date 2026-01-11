@@ -1,0 +1,21 @@
+# Як додати TradingView колону
+
+1. Перейти на https://app.supabase.com
+2. Вибрати ваш проект (G-JOURNAL)
+3. Перейти в **SQL Editor** (ліва панель)
+4. Клікнути **+ New Query**
+5. Вставити код з файлу `add-tradingview-column.sql`:
+
+```sql
+ALTER TABLE trades ADD COLUMN tradingview_url text;
+```
+
+6. Клікнути **Run**
+7. Готово! Тепер можна додавати трейди з TradingView посиланням
+
+## Якщо сталася помилка "column already exists"
+
+Це означає, що колона вже додана. Помилка може бути через кеш. Спробуйте:
+1. Перезагрузити сторінку браузера (Ctrl/Cmd + R)
+2. Очистити cookies (Ctrl/Cmd + Shift + Delete → Cookies)
+3. Заново логінитися

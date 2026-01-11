@@ -143,6 +143,41 @@
         </div>
     </div>
 
+    <!-- Edit Trade Modal -->
+    <div id="editFormOverlay">
+        <div id="editForm">
+            <div class="form-row">
+                <input type="text" id="editPair" placeholder="Asset">
+                <input type="date" id="editDate">
+                <select id="editSession">
+                    <option value="Asia">Asia</option>
+                    <option value="Frankfurt">Frankfurt</option>
+                    <option value="London">London</option>
+                    <option value="New York">New York</option>
+                </select>
+                <select id="editDirection">
+                    <option value="Long">Long</option>
+                    <option value="Short">Short</option>
+                </select>
+                <input type="text" id="editSetup" placeholder="Setup">
+                <input type="url" id="editTradingView" placeholder="TradingView Link (optional)">
+                <input type="number" step="0.01" id="editRisk" placeholder="Risk %">
+                <input type="number" step="0.1" id="editRR" placeholder="RR">
+                <select id="editResult">
+                    <option value="">Select Result</option>
+                    <option value="Take">Take</option>
+                    <option value="Stop">Stop</option>
+                    <option value="BE">BE</option>
+                </select>
+                <input type="text" id="editPL" class="auto-field" placeholder="P/L % (auto)" readonly>
+            </div>
+            <div class="form-actions">
+                <button class="cancel-btn" onclick="window.cancelEditForm()">Cancel</button>
+                <button class="save-btn" onclick="window.saveEditTrade()">Update</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Equity Chart -->
     <div id="equityOverlay">
         <div class="chart-container">
