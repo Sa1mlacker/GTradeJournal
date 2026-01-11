@@ -1,14 +1,16 @@
 // G Trade Journal - Service Worker
 // This file helps with caching control and offline support
 
-const CACHE_NAME = 'g-trade-journal-v1.0.6';
+const CACHE_NAME = 'g-trade-journal-v1.0.7';
 const urlsToCache = [
     '/',
     '/index.html',
     '/styles.css?v=1.0.2',
-    '/app.js?v=1.0.5',
+    '/app.js?v=1.0.7',
     '/config.js',
-    '/logo.png'
+    '/logo.png',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap',
+    'https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2'
 ];
 
 // Install event - cache essential files
