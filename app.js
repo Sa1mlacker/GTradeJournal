@@ -150,6 +150,7 @@
         } else {
             hideLoading();
             showAuth();
+            setupEventListeners(); // Setup button listeners when showing auth
         }
         
         clearTimeout(safetyTimeout);
