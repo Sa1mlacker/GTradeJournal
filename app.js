@@ -5,8 +5,8 @@
     'use strict';
 
     // Version for cache busting
-    const APP_VERSION = '2.0.5';
-    console.log('G Trade Journal v' + APP_VERSION + ' (Pure Fetch API)');
+    const APP_VERSION = '2.1.0';
+    console.log('G Trade Journal v' + APP_VERSION + ' (Pure Fetch API + Auto Token Refresh)');
 
     // Supabase Configuration
     const SUPABASE_URL = 'https://ixnjbdvabaanyvnakwue.supabase.co';
@@ -32,9 +32,9 @@
 
     // ==================== Pure Fetch API Helper ====================
 
-    async function supabaseFetch(endpoint, options = {}) {
+    async function supabaseFetch(endpoint, options = {}, isRetry = false) {
         const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
-        
+
         const headers = {
             'apikey': SUPABASE_ANON_KEY,
             'Content-Type': 'application/json',
@@ -58,7 +58,7 @@
 
             let data = null;
             const text = await response.text();
-            
+
             if (text) {
                 try {
                     data = JSON.parse(text);
@@ -66,11 +66,29 @@
                     data = text;
                 }
             }
-            
+
+            // Handle JWT expired error - try to refresh token
+            if (response.status === 401 && !isRetry) {
+                const errorCode = data?.code;
+                if (errorCode === 'PGRST303' || (data?.message && data.message.includes('JWT'))) {
+                    console.log('JWT expired, attempting to refresh token...');
+                    try {
+                        await refreshAccessToken();
+                        // Retry the original request with new token
+                        return supabaseFetch(endpoint, options, true);
+                    } catch (refreshError) {
+                        console.error('Token refresh failed:', refreshError);
+                        // Force re-login
+                        window.logout();
+                        throw new Error('Session expired. Please sign in again.');
+                    }
+                }
+            }
+
             if (!response.ok) {
                 throw new Error(data?.message || data?.error || `HTTP ${response.status}`);
             }
-            
+
             return { data, error: null };
         } catch (err) {
             clearTimeout(timeoutId);
@@ -82,6 +100,51 @@
     }
 
     // ==================== Auth API ====================
+
+    let refreshToken = null;
+
+    async function refreshAccessToken() {
+        if (!refreshToken) {
+            const savedRefresh = localStorage.getItem('gTradeRefreshToken');
+            if (!savedRefresh) {
+                throw new Error('No refresh token available');
+            }
+            refreshToken = savedRefresh;
+        }
+
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+            method: 'POST',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ refresh_token: refreshToken })
+        });
+
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (e) {
+            throw new Error('Failed to refresh token');
+        }
+
+        if (!response.ok) {
+            // Refresh token is also expired, need to re-login
+            localStorage.removeItem('gTradeToken');
+            localStorage.removeItem('gTradeRefreshToken');
+            localStorage.removeItem('gTradeUser');
+            throw new Error('Session expired. Please sign in again.');
+        }
+
+        // Update tokens
+        authToken = data.access_token;
+        refreshToken = data.refresh_token;
+        localStorage.setItem('gTradeToken', authToken);
+        localStorage.setItem('gTradeRefreshToken', refreshToken);
+
+        console.log('Token refreshed successfully');
+        return authToken;
+    }
 
     async function signIn(email, password) {
         const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
@@ -161,10 +224,12 @@
 
         // Try to restore session from localStorage
         const savedToken = localStorage.getItem('gTradeToken');
+        const savedRefreshToken = localStorage.getItem('gTradeRefreshToken');
         const savedUser = localStorage.getItem('gTradeUser');
-        
+
         if (savedToken && savedUser) {
             authToken = savedToken;
+            refreshToken = savedRefreshToken;
             currentUser = JSON.parse(savedUser);
             hideLoading();
             showApp();
@@ -318,10 +383,12 @@
 
             if (data.access_token) {
                 authToken = data.access_token;
+                refreshToken = data.refresh_token;
                 currentUser = { id: data.user.id, email: data.user.email };
-                
+
                 // Save to localStorage
                 localStorage.setItem('gTradeToken', authToken);
+                localStorage.setItem('gTradeRefreshToken', refreshToken);
                 localStorage.setItem('gTradeUser', JSON.stringify(currentUser));
                 
                 showAuthSuccess(isLoginMode ? "Signed in!" : "Account created!");
@@ -349,8 +416,10 @@
             console.log('Logout API error (ignored):', e.message);
         }
         localStorage.removeItem('gTradeToken');
+        localStorage.removeItem('gTradeRefreshToken');
         localStorage.removeItem('gTradeUser');
         authToken = null;
+        refreshToken = null;
         currentUser = null;
         window.location.reload();
     }
@@ -624,21 +693,15 @@
         console.log('Adding trade:', trade);
 
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
+            const { error } = await supabaseFetch('trades', {
                 method: 'POST',
                 headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
                     'Prefer': 'return=minimal'
                 },
                 body: JSON.stringify(trade)
             });
 
-            if (!response.ok) {
-                const text = await response.text();
-                throw new Error(`HTTP ${response.status}: ${text}`);
-            }
+            if (error) throw error;
 
             console.log('Trade added successfully');
             window.hideForm();
