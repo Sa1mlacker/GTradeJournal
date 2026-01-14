@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=1.0.2">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Loading Screen -->
@@ -222,6 +222,80 @@
     </div>
 
     <!-- Application Script (Pure Fetch API - No Supabase SDK needed) -->
-    <script src="app.js?v=2.0.2"></script>
+    <script src="app.js"></script>
+
+    <!-- Service Worker Registration with Auto-Update -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered');
+
+                        // Check for updates every 60 seconds
+                        setInterval(() => {
+                            registration.update();
+                        }, 60000);
+
+                        // Listen for new SW waiting
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New version available - show notification
+                                    showUpdateNotification();
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => console.log('SW registration failed:', err));
+
+                // Listen for SW messages
+                navigator.serviceWorker.addEventListener('message', event => {
+                    if (event.data.type === 'SW_UPDATED') {
+                        console.log('SW updated to:', event.data.version);
+                        // Auto-reload on SW update
+                        window.location.reload();
+                    }
+                });
+            });
+        }
+
+        function showUpdateNotification() {
+            // Create update banner
+            const banner = document.createElement('div');
+            banner.id = 'updateBanner';
+            banner.innerHTML = `
+                <span>🔄 New version available!</span>
+                <button onclick="window.location.reload()">Update Now</button>
+            `;
+            banner.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #0066ff;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                z-index: 9999;
+                box-shadow: 0 4px 20px rgba(0,102,255,0.4);
+                font-family: Inter, sans-serif;
+            `;
+            banner.querySelector('button').style.cssText = `
+                background: white;
+                color: #0066ff;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: 600;
+            `;
+            document.body.appendChild(banner);
+        }
+    </script>
 </body>
 </html>
