@@ -5,7 +5,7 @@
     'use strict';
 
     // Version for cache busting
-    const APP_VERSION = '2.1.0';
+    const APP_VERSION = '2.1.1';
     console.log('G Trade Journal v' + APP_VERSION + ' (Pure Fetch API + Auto Token Refresh)');
 
     // Supabase Configuration
@@ -222,6 +222,12 @@
             showAuth();
         }, 10000);
 
+        // Check if this is a shared view link first
+        if (checkSharedView()) {
+            clearTimeout(safetyTimeout);
+            return; // Shared view handles its own UI
+        }
+
         // Try to restore session from localStorage
         const savedToken = localStorage.getItem('gTradeToken');
         const savedRefreshToken = localStorage.getItem('gTradeRefreshToken');
@@ -240,7 +246,7 @@
             showAuth();
             setupEventListeners(); // Setup button listeners when showing auth
         }
-        
+
         clearTimeout(safetyTimeout);
     }
 
