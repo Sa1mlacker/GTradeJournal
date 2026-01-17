@@ -5,7 +5,7 @@
     'use strict';
 
     // Version for cache busting
-    const APP_VERSION = '2.1.1';
+    const APP_VERSION = '2.1.2';
     console.log('G Trade Journal v' + APP_VERSION + ' (Pure Fetch API + Auto Token Refresh)');
 
     // Supabase Configuration
@@ -484,23 +484,37 @@
 
     async function loadSharedTrades(userId) {
         try {
-            // Check if user has public sharing enabled
-            const { data: profileData, error: profileError } = await supabaseFetch(
-                `user_profiles?user_id=eq.${userId}`
-            );
+            // For shared views, make anonymous requests (no auth token)
+            // This allows RLS public access policies to work
+            const anonHeaders = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Content-Type': 'application/json'
+            };
 
-            if (profileError || !profileData || !profileData[0] || !profileData[0].is_public) {
+            // Check if user has public sharing enabled
+            const profileResponse = await fetch(
+                `${SUPABASE_URL}/rest/v1/user_profiles?user_id=eq.${userId}`,
+                { headers: anonHeaders }
+            );
+            const profileData = await profileResponse.json();
+
+            if (!profileData || !profileData[0] || !profileData[0].is_public) {
                 showTradesError('This journal is not public');
                 return;
             }
 
-            const { data, error } = await supabaseFetch(
-                `trades?user_id=eq.${userId}&order=date.desc`
+            // Load trades anonymously
+            const tradesResponse = await fetch(
+                `${SUPABASE_URL}/rest/v1/trades?user_id=eq.${userId}&order=date.desc`,
+                { headers: anonHeaders }
             );
+            const tradesData = await tradesResponse.json();
 
-            if (error) throw error;
+            if (!tradesResponse.ok) {
+                throw new Error(tradesData?.message || 'Failed to load trades');
+            }
 
-            trades = data || [];
+            trades = tradesData || [];
             renderTrades();
         } catch (err) {
             console.error('Load shared trades error:', err);

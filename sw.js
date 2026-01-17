@@ -1,7 +1,7 @@
 // G Trade Journal - Service Worker
 // This file helps with caching control and offline support
 
-const CACHE_NAME = 'g-trade-journal-v2.1.1';
+const CACHE_NAME = 'g-trade-journal-v2.1.2';
 
 // Files to cache - use cache busting with version
 const urlsToCache = [
